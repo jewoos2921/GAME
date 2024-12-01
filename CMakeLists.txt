@@ -4,4 +4,5 @@ project(GAME)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(GAME main.cpp
-        MazeState.cpp)
+        MazeState.cpp
+        Greedy.cpp)
