@@ -7,4 +7,7 @@ add_executable(GAME main.cpp
         MazeState.cpp
         Greedy.cpp
         BeamSearch.cpp
-        BeamSearchWithTime.cpp)
+        BeamSearchWithTime.cpp
+        ChokudaiSearch.cpp
+        AutoMoveMazeState.cpp
+)
