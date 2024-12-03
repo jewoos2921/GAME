@@ -202,6 +202,42 @@ namespace BeamSearchWithTime {
         return best_state.first_action_;
     }
 
+    int beamSearchActionByNthElement(const State &state, const int beam_width, const int beam_depth) {
+        std::vector<State> now_beam;
+        State best_state;
+
+        now_beam.emplace_back(state);
+        for (int t = 0; t < beam_depth; t++) {
+            std::vector<State> next_beam;
+
+            for (const State &next_state: now_beam) {
+                auto legal_actions = next_state.legalActions();
+                for (const auto &action: legal_actions) {
+                    State next_state = next_state;
+                    next_state.advance(action);
+                    next_state.evaluateScore();
+                    if (t == 0)
+                        next_state.first_action_ = action;
+                    next_beam.emplace_back(next_state);
+                }
+            }
+            if (next_beam.size() > beam_width) {
+                std::nth_element(next_beam.begin(), next_beam.begin() + beam_width, next_beam.end(), std::greater<>());
+                next_beam.resize(beam_width);
+            }
+
+
+            now_beam = next_beam;
+            if (best_state.isDone()) { break; }
+        }
+        for (const State &now_state: now_beam) {
+            if (now_state.evaluated_score_ > best_state.evaluated_score_) {
+                best_state = now_state;
+            }
+        }
+        return best_state.first_action_;
+    }
+
     int beamSearchActionWithTimeThreshold(const State &state, const int beam_width, const int64_t time_threshold) {
         auto time_keeper = TimeKeeper(time_threshold);
 
