@@ -10,4 +10,5 @@ add_executable(GAME main.cpp
         BeamSearchWithTime.cpp
         ChokudaiSearch.cpp
         AutoMoveMazeState.cpp
+        HillClimb.cpp
 )
