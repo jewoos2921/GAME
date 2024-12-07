@@ -1,15 +1,12 @@
 //
 // Created by eu on 2024-12-6.
 //
-#include <cassert>
 #include <random>
 #include <iostream>
-#include <vector>
 #include <sstream>
-#include <queue>
 #include <chrono>
 
-namespace HillClimb
+namespace SimulatedAnnealing
 {
     using ScoreType = int64_t;
     constexpr const ScoreType INF = 1000000000LL;
@@ -228,19 +225,73 @@ namespace HillClimb
         return now_state;
     }
 
-    void playGame(const StringAIPair& ai, const int seed)
+    State SimulatedAnnealing(const State& state, int number,
+                             double start_temp, double end_temp)
     {
-        auto state = State(seed);
-        state = ai.second(state);
-        std::cout << state.toString() << std::endl;
-        auto score = state.getScore(true);
-        std::cout << "Score of " << ai.first << " : " << score << std::endl;
+        State now_state = state;
+        now_state.init();
+        ScoreType best_score = now_state.getScore();
+        ScoreType now_score = best_score;
+        auto best_state = now_state;
+
+        for (int i = 0; i < number; ++i)
+        {
+            auto next_state = now_state;
+            next_state.transition();
+            auto next_score = next_state.getScore();
+            double temp = start_temp + (end_temp - start_temp) / (i / number);
+            double probability = exp((next_score - now_score) / temp);
+
+            bool is_force_next = probability > (mt_for_action() % INF) / (double)INF;
+            if (next_score > now_score || is_force_next)
+            {
+                now_score = next_score;
+                now_state = next_state;
+            }
+            if (next_score < best_score)
+            {
+                best_score = next_score;
+                best_state = next_state;
+            }
+        }
+        return best_state;
+    }
+
+
+    void testAiScore(const StringAIPair& ai, const int game_number)
+    {
+        std::mt19937 mt_for_construct(0);
+        double score_mean = 0;
+        for (int i = 0; i < game_number; ++i)
+        {
+            auto state = State(mt_for_construct());
+            state = ai.second(state);
+
+            auto score = state.getScore();
+            score_mean += score;
+        }
+
+        score_mean /= (double)game_number;
+        std::cout << "Score of " << ai.first << " : " << score_mean << std::endl;
     }
 
     int make_action()
     {
-        const auto& ai = StringAIPair("hillClimb", [&](const State& state) { return hillClimb(state, 10000); });
-        playGame(ai, 0);
+        int simulate_number{10000};
+        const std::vector<StringAIPair> ais = {
+            StringAIPair{
+                "hillClimb", [&](const State& state) { return hillClimb(state, simulate_number); }
+            },
+            StringAIPair{
+                "simulateAnnealing",
+                [&](const State& state) { return SimulatedAnnealing(state, simulate_number, 500, 10); }
+            },
+        };
+        int game_number{1000};
+        for (const auto& ai : ais)
+        {
+            testAiScore(ai, game_number);
+        }
         return 0;
     }
 }

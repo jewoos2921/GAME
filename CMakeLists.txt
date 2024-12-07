@@ -11,4 +11,5 @@ add_executable(GAME main.cpp
         ChokudaiSearch.cpp
         AutoMoveMazeState.cpp
         HillClimb.cpp
+        SimulatedAnnealing.cpp
 )
